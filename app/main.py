@@ -9,6 +9,7 @@ from fastapi import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
+from app.models import Prediction, SessionLocal
 
 # Added API key to the application
 def verify_api_key(x_api_key: str = Header(...)):
@@ -35,11 +36,38 @@ def health():
 
 @app.get("/results")
 def results():
-    return {"results": [], "note": "persistence not yet implemented"}
+    db = SessionLocal()
+    rows = (db.query(Prediction)
+            .order_by(Prediction.created_at.desc())
+            .limit(20).all())
+    db.close()
+    
+    return {"results": [
+        {
+            "id": r.id,
+            "prediction": r.prediction,
+            "confidence": r.confidence,
+            "model_version": r.model_version,
+            "created_at": r.created_at.isoformat()
+        }
+        for r in rows
+    ]}
 
 @app.post("/classify",response_model=ClassifyResponse,
           dependencies=[Depends(verify_api_key)])
 @limiter.limit("30/minute")
 def classify(req: ClassifyRequest, request: Request):
     arr = np.array(req.pixels, dtype=np.uint8)[np.newaxis]
-    return classify_batch(arr)[0] #changed it because of internal server error (added [0])
+    result = classify_batch(arr)[0]
+
+    # --- DATABASE PERSISTENCE BLOCK ---
+    db = SessionLocal()
+    db.add(Prediction(
+        prediction=result["prediction"],
+        confidence=result["confidence"],
+        model_version="v1"
+    ))
+    db.commit()
+    db.close()
+    # ----------------------------------
+    return result #changed it because of internal server error (added [0])
