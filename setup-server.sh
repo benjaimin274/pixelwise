@@ -1,6 +1,10 @@
+#!/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Pull the pinned model artefact
-if [ -f .env ]; then
-set -a; source .env; set +a
+# CHANGE: Added $SCRIPT_DIR to find .env correctly from anywhere
+if [ -f "$SCRIPT_DIR/.env" ]; then
+set -a; source "$SCRIPT_DIR/.env"; set +a
 if [ -n "${MODEL_REPO:-}" ] && \
 [ -n "${MODEL_VERSION:-}" ]; then
 mkdir -p models/
@@ -14,12 +18,11 @@ fi
 fi
 
 # 2. Sync Python virtual environment requirements
-if [ -d .venv ] && [ -f requirements.txt ]; then
+# CHANGE: Added $SCRIPT_DIR to track requirements.txt path safely
+if [ -d .venv ] && [ -f "$SCRIPT_DIR/requirements.txt" ]; then
     echo "Virtual environment and requirements list found. Syncing dependencies..."
-    # Execute pip install using the explicit path to the venv binary 
-    # to avoid needing to manually 'source' and 'deactivate' inside the script
     .venv/bin/pip install --upgrade pip
-    .venv/bin/pip install -r requirements.txt
+    .venv/bin/pip install -r "$SCRIPT_DIR/requirements.txt"
 else
     echo "Warning: .venv directory or requirements.txt missing. Skipping dependency installation."
 fi
@@ -34,4 +37,21 @@ if [ -f deploy/pixelwise.service ] && \
     sudo systemctl enable pixelwise
     sudo systemctl restart pixelwise
     sudo systemctl status pixelwise --no-pager
+fi
+
+# ADDITION: Paste the new PostgreSQL provisioning block right here at the bottom
+# Provision the pixelwise role and database on every VM
+if command -v psql >/dev/null 2>&1 && \
+[ -f "$SCRIPT_DIR/.env" ]; then
+set -a; source "$SCRIPT_DIR/.env"; set +a
+sudo -u postgres psql -tAc \
+"SELECT 1 FROM pg_roles WHERE rolname='pixelwise'" \
+| grep -q 1 || \
+sudo -u postgres psql -c \
+"CREATE USER pixelwise \
+WITH PASSWORD '$DB_PASSWORD';"
+sudo -u postgres psql -tAc \
+"SELECT 1 FROM pg_database WHERE datname='pixelwise'" \
+| grep -q 1 || \
+sudo -u postgres createdb -O pixelwise pixelwise
 fi
