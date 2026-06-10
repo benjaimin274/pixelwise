@@ -13,6 +13,17 @@ rm -rf /tmp/pixelwise-model
 fi
 fi
 
+# 2. Sync Python virtual environment requirements
+if [ -d .venv ] && [ -f requirements.txt ]; then
+    echo "Virtual environment and requirements list found. Syncing dependencies..."
+    # Execute pip install using the explicit path to the venv binary 
+    # to avoid needing to manually 'source' and 'deactivate' inside the script
+    .venv/bin/pip install --upgrade pip
+    .venv/bin/pip install -r requirements.txt
+else
+    echo "Warning: .venv directory or requirements.txt missing. Skipping dependency installation."
+fi
+
 # Install, start, and report the systemd unit on prod
 if [ -f deploy/pixelwise.service ] && \
    command -v systemctl >/dev/null 2>&1 && \
