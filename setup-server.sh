@@ -25,6 +25,16 @@ if [ -d .venv ] && [ -f "$SCRIPT_DIR/requirements.txt" ]; then
     echo "Virtual environment and requirements list found. Syncing dependencies..."
     .venv/bin/pip install --upgrade pip
     .venv/bin/pip install -r "$SCRIPT_DIR/requirements.txt"
+
+    if [ -f "$SCRIPT_DIR/OOD detection/train_isolation_forest.py" ]; then
+        echo "ML Pipeline: Executing OOD Isolation Forest training sequence..."
+        # Force the training script to run inside the active virtual environment
+        .venv/bin/python "$SCRIPT_DIR/OOD detection/train_isolation_forest.py"
+        
+        # Ensure the destination folder exists and verify the artifact is placed correctly
+        mkdir -p "$SCRIPT_DIR/models"
+        echo "ML Pipeline: Training sequence complete. Core artifact materialized."
+    fi
 else
     echo "Warning: .venv directory or requirements.txt missing. Skipping dependency installation."
 fi

@@ -61,4 +61,4 @@ def fpr95_score(model_path: str, X_test_flat: np.ndarray) -> None:
 
 if __name__ == "__main__":
     X_train_flat, X_test_flat, y_train, y_test = fetch_training_and_test_data()
-    fpr95_score("models\isolation_forest_v1.pkl", X_test_flat)
+    train_forest(X_train_flat)
