@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from sqlalchemy import Column, Integer, String, Float, DateTime, create_engine
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, JSON, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Load environmental configs from .env
@@ -21,6 +21,11 @@ class Prediction(Base):
     confidence = Column(Float, nullable=False)
     model_version = Column(String, nullable=False)
 
+    # Extended schema:
+    iso_score = Column(Float, nullable=False)
+    is_ood = Column(Boolean, nullable=False)
+    pixels = Column(JSON, nullable=False)
+
 # Safely extract secret strings without variable chaining inside systemd configs
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DATABASE_URL = f"postgresql://pixelwise:{DB_PASSWORD}@localhost/pixelwise"
@@ -28,3 +33,6 @@ DATABASE_URL = f"postgresql://pixelwise:{DB_PASSWORD}@localhost/pixelwise"
 # Initialize lazy-loading connection components
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
+
+# Run the following command to update the structure:
+#sudo -u postgres psql -d pixelwise -c "DROP TABLE predictions;"

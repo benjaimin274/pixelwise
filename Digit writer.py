@@ -4,7 +4,7 @@ from tkinter import messagebox
 from PIL import Image, ImageDraw
 
 # --- Global variables ---  
-SAVE_DIR = "drawings class B"
+SAVE_DIR = "Test data/drawings class A"
 CANVAS_PIXELS = 28 #MNISt size
 SCALE = 10 # Display size 
 DISPLAY_SIZE = CANVAS_PIXELS * SCALE  
@@ -127,5 +127,5 @@ class DrawingApp:
 
 if __name__ == "__main__":  
     root = tk.Tk()  
-    app = DrawingApp(root, "nine")  
+    app = DrawingApp(root, "capital_letters")  
     root.mainloop()  

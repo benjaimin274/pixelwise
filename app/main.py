@@ -10,6 +10,11 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 from app.models import Prediction, SessionLocal
+from app.ood_detection import detect_anomalies_batch
+
+# Global Variables:
+MSP_THRESHHOLD = 0.6377
+ISO_THRESHOLD = -0.0255
 
 # Added API key to the application
 def verify_api_key(x_api_key: str = Header(...)):
@@ -47,6 +52,9 @@ def results():
             "id": r.id,
             "prediction": r.prediction,
             "confidence": r.confidence,
+            "iso_score": r.iso_score,
+            "is_ood": r.is_ood,
+            "pixels": r.pixels,  # make it available to the front end
             "model_version": r.model_version,
             "created_at": r.created_at.isoformat()
         }
@@ -58,14 +66,23 @@ def results():
 @limiter.limit("30/minute")
 def classify(req: ClassifyRequest, request: Request):
     arr = np.array(req.pixels, dtype=np.uint8)[np.newaxis]
+    # Iso Forest detection:
+    iso_score = detect_anomalies_batch(arr)[0]
     result = classify_batch(arr)[0]
+
+    # Flag the input as odd if a anomaly was detected:
+    is_ood = bool((result["confidence"] < MSP_THRESHHOLD) or (iso_score < ISO_THRESHOLD))
 
     # --- DATABASE PERSISTENCE BLOCK ---
     db = SessionLocal()
     db.add(Prediction(
         prediction=result["prediction"],
         confidence=result["confidence"],
-        model_version="v1"
+        model_version="v1",
+        # Additons by the ood detection
+        iso_score=iso_score,
+        is_ood=is_ood,
+        pixels=req.pixels
     ))
     db.commit()
     db.close()
