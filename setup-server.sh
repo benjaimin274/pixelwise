@@ -1,3 +1,5 @@
+sudo apt install -y python3-venv python3-pip postgresql postgresql-contrib nginx
+
 #!/bin/bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -42,16 +44,40 @@ fi
 # ADDITION: Paste the new PostgreSQL provisioning block right here at the bottom
 # Provision the pixelwise role and database on every VM
 if command -v psql >/dev/null 2>&1 && \
-[ -f "$SCRIPT_DIR/.env" ]; then
-set -a; source "$SCRIPT_DIR/.env"; set +a
-sudo -u postgres psql -tAc \
-"SELECT 1 FROM pg_roles WHERE rolname='pixelwise'" \
-| grep -q 1 || \
-sudo -u postgres psql -c \
-"CREATE USER pixelwise \
-WITH PASSWORD '$DB_PASSWORD';"
-sudo -u postgres psql -tAc \
-"SELECT 1 FROM pg_database WHERE datname='pixelwise'" \
-| grep -q 1 || \
-sudo -u postgres createdb -O pixelwise pixelwise
+    [ -f "$SCRIPT_DIR/.env" ]; then
+    set -a; source "$SCRIPT_DIR/.env"; set +a
+    sudo -u postgres psql -tAc \
+    "SELECT 1 FROM pg_roles WHERE rolname='pixelwise'" \
+    | grep -q 1 || \
+    sudo -u postgres psql -c \
+    "CREATE USER pixelwise \
+    WITH PASSWORD '$DB_PASSWORD';"
+    sudo -u postgres psql -tAc \
+    "SELECT 1 FROM pg_database WHERE datname='pixelwise'" \
+    | grep -q 1 || \
+    sudo -u postgres createdb -O pixelwise pixelwise
+fi
+
+if [ -f deploy/pixelwise.nginx ] && \
+   command -v nginx >/dev/null 2>&1 && \
+   id produser >/dev/null 2>&1; then
+
+    echo "Edge Provisioning: Materializing frontend file structure..."
+    sudo mkdir -p /var/www/pixelwise
+    sudo cp -r frontend/* /var/www/pixelwise/
+
+    echo "Edge Provisioning: Injecting active SECRET_API_KEY from .env..."
+    KEY=$(grep ^SECRET_API_KEY /opt/pixelwise/.env | cut -d'=' -f2)
+    sudo sed -i "s/REPLACE_ME/$KEY/" /var/www/pixelwise/app.js
+
+    echo "Edge Provisioning: Staging Nginx configuration files..."
+    sudo cp deploy/pixelwise.nginx /etc/nginx/sites-available/pixelwise
+    sudo ln -sf /etc/nginx/sites-available/pixelwise /etc/nginx/sites-enabled/pixelwise
+
+    echo "Edge Provisioning: Cleaning up default configuration blockers..."
+    sudo rm -f /etc/nginx/sites-enabled/default
+
+    echo "Edge Provisioning: Testing syntax rules and reloading daemon..."
+    sudo nginx -t && sudo systemctl reload nginx
+    echo "Edge Provisioning: Frontend application successfully deployed at port 80!"
 fi
