@@ -25,6 +25,9 @@ class Prediction(Base):
     iso_score = Column(Float, nullable=False)
     is_ood = Column(Boolean, nullable=False)
     pixels = Column(JSON, nullable=False)
+    # HITL schema
+    human_label = Column(String, nullable=True)
+    is_reviewed = Column(Boolean, default=False)
 
 # Safely extract secret strings without variable chaining inside systemd configs
 DB_PASSWORD = os.getenv("DB_PASSWORD")

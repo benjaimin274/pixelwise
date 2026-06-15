@@ -27,9 +27,6 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.1, random_state=RANDOM_STATE, stratify=y)
     
-    print(X_train.shape)
-    print(X_test.shape)
-
     # Reshape into the correct format
     images_test = X_test.reshape(-1, 28, 28).astype(np.uint8)
 
