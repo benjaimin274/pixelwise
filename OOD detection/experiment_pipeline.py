@@ -253,6 +253,6 @@ def combined_ood_experiment():
     plot_combined_stacked_bars(summary_A, summary_B)
 
 if __name__ == "__main__":
-    isolation_forest_experiment()
+    #isolation_forest_experiment()
     #msp_experiment()
-    #combined_ood_experiment()
+    combined_ood_experiment()

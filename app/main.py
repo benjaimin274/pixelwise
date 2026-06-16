@@ -28,6 +28,7 @@ class ClassifyResponse(BaseModel):
     prediction: str
     confidence: float
     scores: dict[str, float]
+    is_ood: bool
 
 app = FastAPI()
 
@@ -87,4 +88,4 @@ def classify(req: ClassifyRequest, request: Request):
     db.commit()
     db.close()
     # ----------------------------------
-    return result #changed it because of internal server error (added [0])
+    return {**result, "is_ood": is_ood}

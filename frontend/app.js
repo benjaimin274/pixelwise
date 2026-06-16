@@ -10,14 +10,24 @@ view.imageSmoothingEnabled = false; // Ensures crisp, pixelated rendering blocks
 
 // Hidden low-res background matrix buffer
 const grid = document.createElement("canvas");
-grid.width = N; 
+grid.width = N;
 grid.height = N;
 const gctx = grid.getContext("2d");
 gctx.lineWidth = 2.5;
-gctx.lineCap = "round"; 
+gctx.lineCap = "round";
 gctx.lineJoin = "round";
 
 let drawing = false;
+
+// OOD Toast notification
+const oodToast = document.getElementById("oodToast");
+
+function showOODToast() {
+    oodToast.classList.add("show");
+    setTimeout(() => {
+        oodToast.classList.remove("show");
+    }, 3000); // Auto-dismiss after 3 seconds
+}
 
 // Project the low-res grid up onto the high-res viewport display
 function render() {
@@ -33,7 +43,7 @@ function clearPad() {
 
 // Map screen tracking movements onto internal low-res coordinate maps
 pad.onmousedown = e => {
-    drawing = true; 
+    drawing = true;
     gctx.beginPath();
     gctx.moveTo(e.offsetX / SCALE, e.offsetY / SCALE);
 };
@@ -41,7 +51,7 @@ pad.onmousedown = e => {
 pad.onmousemove = e => {
     if (!drawing) return;
     gctx.lineTo(e.offsetX / SCALE, e.offsetY / SCALE);
-    gctx.stroke(); 
+    gctx.stroke();
     render();
 };
 
@@ -52,7 +62,7 @@ pad.onmouseleave = () => { drawing = false; };
 function getPixels() {
     const data = gctx.getImageData(0, 0, N, N).data;
     const pixels = [];
-    
+
     for (let y = 0; y < N; y++) {
         const row = [];
         for (let x = 0; x < N; x++) {
@@ -70,7 +80,7 @@ function getPixels() {
 async function classify() {
     const out = document.getElementById("result");
     out.textContent = "Analyzing matrix pattern...";
-    
+
     try {
         const r = await fetch("/api/classify", {
             method: "POST",
@@ -80,14 +90,19 @@ async function classify() {
             },
             body: JSON.stringify({ pixels: getPixels() })
         });
-        
-        if (!r.ok) { 
-            out.textContent = "Error communicating with Gateway: " + r.status; 
-            return; 
+
+        if (!r.ok) {
+            out.textContent = "Error communicating with Gateway: " + r.status;
+            return;
         }
-        
+
         const d = await r.json();
         out.textContent = `Prediction: ${d.prediction} (${(d.confidence * 100).toFixed(1)}%)`;
+
+        if (d.is_ood) {
+            showOODToast();
+        }
+
         refreshHistory();
     } catch (err) {
         out.textContent = "Network error occurred.";
@@ -99,15 +114,16 @@ async function refreshHistory() {
     try {
         const r = await fetch("/api/results");
         if (!r.ok) return;
-        
+
         const ul = document.getElementById("history");
         ul.innerHTML = "";
-        
+
         const data = await r.json();
         for (const row of data.results) {
             const li = document.createElement("li");
             const timestamp = new Date(row.created_at).toLocaleTimeString();
-            li.textContent = `[${timestamp}] Digit: ${row.prediction} — Conf: ${(row.confidence * 100).toFixed(1)}% (Model: ${row.model_version})`;
+            const oodIndicator = row.is_ood ? " 🚨 OOD" : "";
+            li.textContent = `[${timestamp}] Digit: ${row.prediction} — Conf: ${(row.confidence * 100).toFixed(1)}% (Model: ${row.model_version})${oodIndicator}`;
             ul.appendChild(li);
         }
     } catch (err) {
