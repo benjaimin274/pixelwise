@@ -93,7 +93,7 @@ async function classify() {
     out.textContent = "Analyzing matrix pattern...";
 
     try {
-        const r = await fetch("/classify", {
+        const r = await fetch("/api/classify", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -123,7 +123,7 @@ async function classify() {
 // Populate the bottom recent-predictions list view with live database history metrics
 async function refreshHistory() {
     try {
-        const r = await fetch("/results");
+        const r = await fetch("/api/results");
         if (!r.ok) return;
 
         const ul = document.getElementById("history");
