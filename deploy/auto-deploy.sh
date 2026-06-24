@@ -32,6 +32,13 @@ if ! python -m pytest tests/; then
     exit 1
 fi
 
+echo "Syncing frontend static assets to Nginx web root..."
+sudo cp -r /opt/pixelwise/frontend/* /var/www/pixelwise/
+
+sudo cp -r "$SCRIPT_DIR/frontend/"* /var/www/pixelwise/
+KEY=$(grep ^SECRET_API_KEY "$SCRIPT_DIR/.env" | cut -d'=' -f2)
+sudo sed -i "s/REPLACE_ME/$KEY/" /var/www/pixelwise/app.js
+
 # If the code passes validation, trigger a safe application service restart
 echo "Validation passed. Restarting live service modules..."
 sudo systemctl restart pixelwise
