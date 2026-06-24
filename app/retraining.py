@@ -7,6 +7,10 @@ from models import SessionLocal, Prediction
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 
+"""
+Theoretical skeleton of a potential retraining pipeline.
+"""
+
 def fetch_original_training_data():
     RANDOM_STATE = 42
     X, y = fetch_openml("mnist_784", version=1,return_X_y=True, as_frame=False)
