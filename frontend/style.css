@@ -34,6 +34,7 @@ button {
     padding: 0.25rem 0;
 }
 
+/* Base State (Hidden, but ready to animate) */
 .toast {
     position: fixed;
     bottom: 2rem;
@@ -43,14 +44,20 @@ button {
     padding: 1rem 1.5rem;
     border-radius: 4px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    display: none; /* Keeps it completely hidden */
     z-index: 1000;
+    
+    /* Replaces display*/
+    visibility: hidden; 
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Adds a slight bouncy effect */
 }
 
-/* 2. Active State (Triggered when JS adds the .show class) */
+/* Active State */
 .toast.show {
-    display: block;
-    animation: slideIn 0.3s ease-in-out forwards; /* "forwards" is the magic word! */
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(0);
 }
 
 /* 3. Keep your exact keyframes down here */

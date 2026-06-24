@@ -21,12 +21,19 @@ let drawing = false;
 
 // OOD Toast notification
 const oodToast = document.getElementById("oodToast");
+let toastTimeout; // Tracking variable for the timer
 
 function showOODToast() {
+    // 1. Clear any existing timers so they don't fight
+    clearTimeout(toastTimeout); 
+    
+    // 2. Add the active class
     oodToast.classList.add("show");
-    setTimeout(() => {
+    
+    // 3. Set a fresh 3-second timer
+    toastTimeout = setTimeout(() => {
         oodToast.classList.remove("show");
-    }, 3000); // Auto-dismiss after 3 seconds
+    }, 3000);
 }
 
 // Project the low-res grid up onto the high-res viewport display
@@ -86,7 +93,7 @@ async function classify() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-API-Key": API_KEY // Ensure this is replaced by a real key
+                "X-API-Key": API_KEY
             },
             body: JSON.stringify({ pixels: getPixels() })
         });
