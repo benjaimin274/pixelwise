@@ -34,7 +34,6 @@ button {
     padding: 0.25rem 0;
 }
 
-/* Toast Notification */
 .toast {
     position: fixed;
     bottom: 2rem;
@@ -44,15 +43,17 @@ button {
     padding: 1rem 1.5rem;
     border-radius: 4px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    display: none;
-    animation: slideIn 0.3s ease-in-out;
+    display: none; /* Keeps it completely hidden */
     z-index: 1000;
 }
 
+/* 2. Active State (Triggered when JS adds the .show class) */
 .toast.show {
     display: block;
+    animation: slideIn 0.3s ease-in-out forwards; /* "forwards" is the magic word! */
 }
 
+/* 3. Keep your exact keyframes down here */
 @keyframes slideIn {
     from {
         transform: translateX(400px);
