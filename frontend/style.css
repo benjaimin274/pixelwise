@@ -34,7 +34,7 @@ button {
     padding: 0.25rem 0;
 }
 
-/* Base State (Hidden, but ready to animate) */
+/* Base Toast State: Safely waiting off-screen, completely invisible */
 .toast {
     position: fixed;
     bottom: 2rem;
@@ -46,39 +46,16 @@ button {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     
-    /* Replaces display*/
-    visibility: hidden; 
+    /* Smooth positional interpolation properties */
     opacity: 0;
+    visibility: hidden;
     transform: translateX(400px);
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Adds a slight bouncy effect */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s;
 }
 
-/* Active State */
+/* Active State: Brought into view cleanly by JavaScript */
 .toast.show {
-    visibility: visible;
     opacity: 1;
+    visibility: visible;
     transform: translateX(0);
-}
-
-/* 3. Keep your exact keyframes down here */
-@keyframes slideIn {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
 }

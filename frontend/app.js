@@ -21,21 +21,25 @@ let drawing = false;
 
 // OOD Toast notification
 const oodToast = document.getElementById("oodToast");
-let toastTimeout; // Tracking variable for the timer
+let toastTimerReference = null;
 
 function showOODToast() {
-    // 1. Clear any existing timers so they don't fight
-    clearTimeout(toastTimeout); 
+    const oodToastElement = document.getElementById("oodToast");
     
-    // 2. Add the active class
-    oodToast.classList.add("show");
+    // Clear out any pre-existing active timer structures to reset the clock
+    if (toastTimerReference) {
+        clearTimeout(toastTimerReference);
+    }
     
-    // 3. Set a fresh 3-second timer
-    toastTimeout = setTimeout(() => {
-        oodToast.classList.remove("show");
+    // Activate visibility states
+    oodToastElement.classList.add("show");
+    
+    // Schedule clean removal exactly 3 seconds out
+    toastTimerReference = setTimeout(() => {
+        oodToastElement.classList.remove("show");
+        toastTimerReference = null;
     }, 3000);
 }
-
 // Project the low-res grid up onto the high-res viewport display
 function render() {
     view.drawImage(grid, 0, 0, pad.width, pad.height);
