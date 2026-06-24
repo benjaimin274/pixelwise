@@ -89,7 +89,7 @@ if [ -f "$SCRIPT_DIR/deploy/systemd/pixelwise-deploy.timer" ] && \
     sudo cp "$SCRIPT_DIR/deploy/systemd/pixelwise-deploy.timer" /etc/systemd/system/pixelwise-deploy.timer
 
     echo "Pipeline Setup: Granting produser passwordless restart permissions..."
-    echo "produser ALL=(root) NOPASSWD: /usr/bin/systemctl restart pixelwise" | sudo tee /etc/sudoers.d/pixelwise > /dev/null
+    echo "produser ALL=(root) NOPASSWD: /usr/bin/systemctl restart pixelwise, /usr/bin/cp, /usr/bin/sed" | sudo tee /etc/sudoers.d/pixelwise > /dev/null
 
     echo "Pipeline Setup: Reloading background system engines and activating scheduler..."
     sudo systemctl daemon-reload
