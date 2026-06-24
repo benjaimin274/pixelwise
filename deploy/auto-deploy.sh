@@ -3,14 +3,17 @@
 # Authored on dev, executed on prod by the systemd timer scheduler loops.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd /opt/pixelwise
 
-# Fetch latest history tracking points from git
-git fetch origin
+BRANCH="${DEPLOY_BRANCH:-feature/vm-migration-dual-ood}"
+
+# Fetch latest history tracking points from git for the configured branch
+git fetch origin "$BRANCH"
 
 # Extract comparative verification commit fingerprints
 LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/feature/vm-migration-dual-ood)
+REMOTE=$(git rev-parse origin/"$BRANCH")
 
 # If no new changes are found upstream, exit cleanly and cheaply
 if [ "$LOCAL" = "$REMOTE" ]; then
@@ -20,7 +23,8 @@ fi
 echo "New change found on upstream tracking matrix: $REMOTE"
 
 # Pull down the tracking modifications
-git pull origin feature/vm-migration-dual-ood
+git checkout "$BRANCH"
+git pull origin "$BRANCH"
 
 # Activate environment and synchronize packages
 source .venv/bin/activate
@@ -33,8 +37,6 @@ if ! python -m pytest tests/; then
 fi
 
 echo "Syncing frontend static assets to Nginx web root..."
-sudo cp -r /opt/pixelwise/frontend/* /var/www/pixelwise/
-
 sudo cp -r "$SCRIPT_DIR/frontend/"* /var/www/pixelwise/
 KEY=$(grep ^SECRET_API_KEY "$SCRIPT_DIR/.env" | cut -d'=' -f2)
 sudo sed -i "s/REPLACE_ME/$KEY/" /var/www/pixelwise/app.js
