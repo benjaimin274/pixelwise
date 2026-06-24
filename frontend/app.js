@@ -82,11 +82,11 @@ async function classify() {
     out.textContent = "Analyzing matrix pattern...";
 
     try {
-        const r = await fetch("/api/classify", {
+        const r = await fetch("/classify", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-API-Key": API_KEY
+                "X-API-Key": API_KEY // Ensure this is replaced by a real key
             },
             body: JSON.stringify({ pixels: getPixels() })
         });
@@ -112,7 +112,7 @@ async function classify() {
 // Populate the bottom recent-predictions list view with live database history metrics
 async function refreshHistory() {
     try {
-        const r = await fetch("/api/results");
+        const r = await fetch("/results");
         if (!r.ok) return;
 
         const ul = document.getElementById("history");
