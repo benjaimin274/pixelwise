@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 
 """
 Theoretical skeleton of a potential retraining pipeline.
+Not inplemented in the main application because out of scope.
 """
 
 def fetch_original_training_data():
